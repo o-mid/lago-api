@@ -13,6 +13,11 @@ module Api
         before_action :find_contract
         before_action :reject_invalid_entitlements_body!, only: :update
 
+        # The list is returned whole.
+        def index
+          render_entitlements(::Entitlement::SubscriptionEntitlement.for_contract(contract))
+        end
+
         def update
           result = ::Entitlement::ContractEntitlementUpdateService.call(contract:, entitlements_params:)
 
