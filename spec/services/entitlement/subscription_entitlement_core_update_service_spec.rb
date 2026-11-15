@@ -308,4 +308,71 @@ RSpec.describe Entitlement::SubscriptionEntitlementCoreUpdateService do
       end
     end
   end
+
+  describe "#call with a contract owner" do
+    subject(:result) do
+      described_class.call(
+        owner: contract,
+        plan: catalog_plan,
+        feature: seats,
+        plan_entitlement: contract_plan_entitlement,
+        sub_entitlement: contract_entitlement,
+        privilege_params:,
+        partial: true
+      )
+    end
+
+    let(:catalog_plan) { create(:catalog_plan, organization:) }
+    let(:contract) { create(:contract, organization:, catalog_plan:) }
+    let(:catalog_plan_entitlement) { create(:entitlement, :catalog_plan, organization:, catalog_plan:, feature: seats) }
+    let(:contract_plan_entitlement) { catalog_plan.entitlements.includes(values: :privilege).find_by(feature: seats) }
+    let(:contract_entitlement) { contract.entitlements.includes(values: :privilege).find_by(feature: seats) }
+
+    def contract_values
+      Entitlement::SubscriptionEntitlement.for_contract(contract).find { it.code == "seats" }
+        &.privileges&.to_h { [it.code, Utils::Entitlement.cast_value(it.value, it.value_type)] }
+    end
+
+    context "when the catalog plan grants the feature" do
+      before { create(:entitlement_value, entitlement: catalog_plan_entitlement, privilege: seats_max, value: 10) }
+
+      context "with another value" do
+        let(:privilege_params) { {seats_max.code => 60} }
+
+        it "stores an override on the contract" do
+          expect(result).to be_success
+          expect(contract_values).to eq("max" => 60)
+          expect(contract.entitlements.sole.values.sole.value).to eq("60")
+          expect(subscription.entitlements).to be_empty
+        end
+      end
+
+      context "with the value of the catalog plan" do
+        let(:privilege_params) { {seats_max.code => 10} }
+
+        before do
+          override = create(:entitlement, :contract, organization:, contract:, feature: seats)
+          create(:entitlement_value, entitlement: override, privilege: seats_max, value: 60)
+          create(:subscription_feature_removal, :contract, organization:, contract:, privilege: seats_reset)
+        end
+
+        it "drops the override and the removals of the contract" do
+          expect(result).to be_success
+          expect(contract.entitlements.reload).to be_empty
+          expect(contract.entitlement_removals.reload).to be_empty
+          expect(contract_values).to eq("max" => 10)
+        end
+      end
+    end
+
+    context "when only the contract grants the feature" do
+      let(:privilege_params) { {seats_max.code => 60, seats_reset.code => true} }
+
+      it "adds the feature to the contract" do
+        expect(result).to be_success
+        expect(contract.entitlements.sole.feature).to eq(seats)
+        expect(contract_values).to eq("max" => 60, "reset" => true)
+      end
+    end
+  end
 end

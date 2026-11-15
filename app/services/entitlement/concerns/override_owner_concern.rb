@@ -1,0 +1,32 @@
+# frozen_string_literal: true
+
+module Entitlement
+  module Concerns
+    # The record whose entitlement rows override those of its plan: a subscription, or a contract over its catalog plan.
+    module OverrideOwnerConcern
+      extend ActiveSupport::Concern
+
+      private
+
+      # The owner column of entitlement and removal rows, as an association name.
+      def override_owner_key(owner)
+        case owner
+        when ::Subscription then :subscription
+        when ::Contract then :contract
+        else raise ArgumentError, "unknown entitlement override owner: #{owner.class}"
+        end
+      end
+
+      # The entitlements of the plan that the owner overrides. A contract without a catalog plan has none.
+      def owner_plan_entitlements(owner)
+        if override_owner_key(owner) == :contract
+          return ::Entitlement::Entitlement.none unless owner.catalog_plan_id
+
+          ::Entitlement::Entitlement.where(catalog_plan_id: owner.catalog_plan_id)
+        else
+          ::Entitlement::Entitlement.where(plan_id: owner.plan.parent_id || owner.plan.id)
+        end
+      end
+    end
+  end
+end
