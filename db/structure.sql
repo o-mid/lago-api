@@ -8380,7 +8380,7 @@ CREATE UNIQUE INDEX idx_unique_feature_per_catalog_plan ON public.entitlement_en
 -- Name: idx_unique_feature_per_contract; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX idx_unique_feature_per_contract ON public.entitlement_entitlements USING btree (contract_id, entitlement_feature_id) WHERE (deleted_at IS NULL);
+CREATE UNIQUE INDEX idx_unique_feature_per_contract ON public.entitlement_entitlements USING btree (contract_id, entitlement_feature_id) WHERE ((contract_id IS NOT NULL) AND (deleted_at IS NULL));
 
 
 --
@@ -8401,7 +8401,7 @@ CREATE UNIQUE INDEX idx_unique_feature_per_subscription ON public.entitlement_en
 -- Name: idx_unique_feature_removal_per_contract; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX idx_unique_feature_removal_per_contract ON public.entitlement_subscription_feature_removals USING btree (contract_id, entitlement_feature_id) WHERE (deleted_at IS NULL);
+CREATE UNIQUE INDEX idx_unique_feature_removal_per_contract ON public.entitlement_subscription_feature_removals USING btree (contract_id, entitlement_feature_id) WHERE ((contract_id IS NOT NULL) AND (deleted_at IS NULL));
 
 
 --
@@ -8415,7 +8415,7 @@ CREATE UNIQUE INDEX idx_unique_feature_removal_per_subscription ON public.entitl
 -- Name: idx_unique_privilege_removal_per_contract; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX idx_unique_privilege_removal_per_contract ON public.entitlement_subscription_feature_removals USING btree (contract_id, entitlement_privilege_id) WHERE (deleted_at IS NULL);
+CREATE UNIQUE INDEX idx_unique_privilege_removal_per_contract ON public.entitlement_subscription_feature_removals USING btree (contract_id, entitlement_privilege_id) WHERE ((contract_id IS NOT NULL) AND (deleted_at IS NULL));
 
 
 --

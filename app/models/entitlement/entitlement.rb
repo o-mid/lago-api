@@ -41,7 +41,7 @@ end
 # Indexes
 #
 #  idx_unique_feature_per_catalog_plan                       (entitlement_feature_id,catalog_plan_id) UNIQUE WHERE (deleted_at IS NULL)
-#  idx_unique_feature_per_contract                           (contract_id,entitlement_feature_id) UNIQUE WHERE (deleted_at IS NULL)
+#  idx_unique_feature_per_contract                           (contract_id,entitlement_feature_id) UNIQUE WHERE ((contract_id IS NOT NULL) AND (deleted_at IS NULL))
 #  idx_unique_feature_per_plan                               (entitlement_feature_id,plan_id) UNIQUE WHERE (deleted_at IS NULL)
 #  idx_unique_feature_per_subscription                       (entitlement_feature_id,subscription_id) UNIQUE WHERE (deleted_at IS NULL)
 #  index_entitlement_entitlements_on_catalog_plan_id         (catalog_plan_id)
