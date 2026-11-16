@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class AddContractIdIndexesToEntitlements < ActiveRecord::Migration[8.0]
+class AddContractIdIndexesToEntitlements < ActiveRecord::Migration[8.1]
   disable_ddl_transaction!
 
   # At most one live row per contract and feature (or privilege). Led by contract_id, so they

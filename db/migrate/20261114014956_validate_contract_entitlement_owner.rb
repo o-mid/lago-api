@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class ValidateContractEntitlementOwner < ActiveRecord::Migration[8.0]
+class ValidateContractEntitlementOwner < ActiveRecord::Migration[8.1]
   def up
     validate_foreign_key :entitlement_entitlements, :contracts
     validate_foreign_key :entitlement_subscription_feature_removals, :contracts

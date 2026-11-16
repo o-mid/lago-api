@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class AddContractToEntitlements < ActiveRecord::Migration[8.0]
+class AddContractToEntitlements < ActiveRecord::Migration[8.1]
   def up
     add_column :entitlement_entitlements, :contract_id, :uuid, null: true, if_not_exists: true
     add_column :entitlement_subscription_feature_removals, :contract_id, :uuid, null: true, if_not_exists: true
