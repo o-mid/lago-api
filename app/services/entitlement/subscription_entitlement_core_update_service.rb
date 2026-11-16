@@ -61,7 +61,17 @@ module Entitlement
         sub_entitlement = self.sub_entitlement || create_entitlement_for_owner
         remove_missing_entitlement_values(plan_entitlement, sub_entitlement) if full?
         update_values_for_owner(plan_entitlement, sub_entitlement)
+        discard_empty_contract_entitlement(sub_entitlement) if plan_entitlement
       end
+    end
+
+    # A contract row without values over a feature that the catalog plan grants changes nothing: it is discarded.
+    # Subscriptions keep theirs, as v1 always did.
+    def discard_empty_contract_entitlement(entitlement)
+      return unless override_owner_key(owner) == :contract
+      return if EntitlementValue.where(entitlement:).exists?
+
+      entitlement.discard!
     end
 
     def create_entitlement_for_owner

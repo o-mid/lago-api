@@ -75,11 +75,24 @@ RSpec.describe Entitlement::ContractEntitlementUpdateService do
       context "when the value equals the catalog plan value" do
         let(:entitlements_params) { {"seats" => {"max" => 50}} }
 
-        it "drops the override" do
+        it "drops the override and leaves no empty contract entitlement" do
           expect(result).to be_success
 
           expect(contract_entitlement.values.reload).to be_empty
+          expect(contract.entitlements.reload).to be_empty
           expect(effective_values("seats")).to eq("max" => 50, "sso" => true)
+        end
+
+        context "when the override has another value" do
+          before { create(:entitlement_value, organization:, entitlement: contract_entitlement, privilege: seats_sso, value: "false") }
+
+          it "keeps the contract entitlement with that value" do
+            expect(result).to be_success
+
+            expect(contract.entitlements.reload).to eq([contract_entitlement])
+            expect(contract_entitlement.values.reload.map(&:value)).to eq(["false"])
+            expect(effective_values("seats")).to eq("max" => 50, "sso" => false)
+          end
         end
       end
 
@@ -101,8 +114,30 @@ RSpec.describe Entitlement::ContractEntitlementUpdateService do
       it "stores nothing" do
         expect(result).to be_success
 
-        expect(Entitlement::EntitlementValue.where(entitlement: contract.entitlements)).to be_empty
+        expect(contract.entitlements.reload).to be_empty
         expect(effective_values("seats")).to eq("max" => 50, "sso" => true)
+      end
+    end
+
+    context "with an empty privilege map for a feature of the catalog plan" do
+      let(:entitlements_params) { {"seats" => {}} }
+
+      it "stores nothing" do
+        expect(result).to be_success
+
+        expect(contract.entitlements.reload).to be_empty
+        expect(effective_values("seats")).to eq("max" => 50, "sso" => true)
+      end
+    end
+
+    context "with an empty privilege map for a feature that only the contract grants" do
+      let(:entitlements_params) { {"storage" => {}} }
+
+      it "grants the feature without values" do
+        expect(result).to be_success
+
+        expect(contract.entitlements.sole.feature).to eq(storage)
+        expect(effective_values("storage")).to eq({})
       end
     end
 
