@@ -61,10 +61,6 @@ module Entitlement
       def lock_override_owner!(owner)
         owner.is_a?(Contract) ? lock_contract!(owner) : lock_subscription!(owner)
       end
-
-      def override_owner_unique_indexes(owner)
-        owner.is_a?(Contract) ? CONTRACT_UNIQUE_INDEXES : SUBSCRIPTION_UNIQUE_INDEXES
-      end
     end
   end
 end
